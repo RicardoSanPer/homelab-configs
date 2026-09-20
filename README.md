@@ -45,3 +45,14 @@ Additionally Rclone creates a local backup copy of files stored in the cloud.
 - Most services are running as Docker containers in docker networks, listening only on localhost.
 - Most services are accessible through the Nginx proxy.
 - Firewall rules (UFW) restrict access to most of the services outside the proxy.
+
+## Files
+| File | Purpose | Location |
+| ---- | --- | --- |
+| docker-compose.yml | Compose files for the services | ~ (User home directory) |
+| homelab-nginx.conf | Configuration for the reverse proxy | /etc/nginx/conf.d/ |
+| user.rules | UFW user rules | /etc/ufw/ |
+| user6.rules | UFW user rules (IPv6) | /etc/ufw/ |
+| onedrive-sync.timer | Systemd timer for the backup service | /etc/systemd/ |
+| onedrive-sync.service | Systemd service for the backup | /etc/systemd/ |
+| onedrive-sync.sh | Script executed by the backup service | /usr/local/bin/ |
