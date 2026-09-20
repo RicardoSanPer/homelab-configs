@@ -1,0 +1,268 @@
+services:
+    it-tools:
+        image: sharevb/it-tools:latest
+        container_name: it-tools
+        restart: unless-stopped
+        networks:
+        - tools
+        ports:
+        - "127.0.0.1:8085:8080"
+
+    omni-tools:
+        image: iib0011/omni-tools:latest
+        container_name: omni-tools
+        restart: unless-stopped
+        networks:
+        - tools
+        ports:
+        - "127.0.0.1:8083:80"
+
+    cyberchef:
+        image: ghcr.io/gchq/cyberchef:latest
+        container_name: cyberchef
+        restart: unless-stopped
+        networks:
+        - tools
+        ports:
+        - "127.0.0.1:8084:8080"
+
+    adguardhome:
+        restart: unless-stopped
+        volumes:
+            - ./adguard/opt/work:/opt/adguardhome/work
+            - ./adguard/opt/conf:/opt/adguardhome/conf
+        networks:
+            - adguard
+        ports:
+            - 53:53/tcp
+            - 53:53/udp
+            - 127.0.0.1:3080:3080/tcp
+            - 127.0.0.1:3081:3000/tcp
+            - 6060:6060/tcp
+        image: adguard/adguardhome
+
+    anki-sync-server:
+        image: chrislongros/anki-sync-server-enhanced:latest
+        container_name: anki-sync-server
+        networks:
+        - productivity
+        ports:
+        - "127.0.0.1:9090:8080"   # Sync server
+        - "127.0.0.1:9091:8081"   # Dashboard
+        - "127.0.0.1:9092:9090"   # Metrics
+        environment:
+        - SYNC_USER1=<user>:<password>
+        - TZ=America/Mexico_City
+        - BACKUP_ENABLED=true
+        - BACKUP_SCHEDULE=0 3 * * *
+        - METRICS_ENABLED=true
+        - DASHBOARD_ENABLED=true
+        volumes:
+        - ./anki/data:/data
+        - /mnt/external/data/backup_automation/anki-backup:/backups
+        restart: unless-stopped
+
+    kanboard:
+        image: kanboard/kanboard:latest
+        container_name: kanboard
+        networks:
+            - productivity
+        ports:
+            - "127.0.0.1:8081:80"
+        environment:
+            - PLUGIN_INSTALLER=true
+        restart: unless-stopped
+
+    fresh-rss:
+        image: freshrss/freshrss
+        container_name: freshrss
+        volumes:
+            - /var/www/FreshRSS/data:/freshrss_data
+            - /var/www/FreshRSS/extensions:/freshrss_extensions
+        environment:
+            - TZ=America/Mexico_City
+            - 'CONR_MIN=1,31'
+        networks:
+            - productivity
+        ports:
+            - "127.0.0.1:8082:80"
+        restart: unless-stopped
+
+    jellyseerr:
+        image: fallenbagel/jellyseerr:latest
+        environment:
+        - LOG_LEVEL=info
+        - TZ=America/Mexico_City
+        volumes:
+        - ./automation/jellyseerr/config:/app/config
+        networks:
+        - arrnet
+        ports:
+        - "127.0.0.1:5055:5055"
+        extra_hosts:
+        - "host.docker.internal:host-gateway"
+        restart: unless-stopped
+
+    radarr:
+        image: lscr.io/linuxserver/radarr:latest
+        environment:
+        - PUID=1000
+        - PGID=1000
+        - TZ=America/Mexico_City
+        volumes:
+        - ./automation/radarr/config:/config
+        - /mnt/external/data:/data
+        networks:
+        - arrnet
+        ports:
+        - "127.0.0.1:7878:7878"
+        extra_hosts:
+        - "host.docker.internal:host-gateway"
+        restart: unless-stopped
+
+    sonarr:
+        image: lscr.io/linuxserver/sonarr:latest
+        environment:
+        - PUID=1000
+        - PGID=1000
+        - TZ=America/Mexico_City
+        volumes:
+        - ./automation/sonarr/config:/config
+        - /mnt/external/data:/data
+        networks:
+        - arrnet
+        ports:
+        - "127.0.0.1:8989:8989"
+        extra_hosts:
+        - "host.docker.internal:host-gateway"
+        restart: unless-stopped
+
+    prowlarr:
+        image: lscr.io/linuxserver/prowlarr:latest
+        environment:
+        - PUID=1000
+        - PGID=1000
+        - TZ=America/Mexico_City
+        volumes:
+        - ./automation/prowlarr/config:/config
+        - /mnt/external/data:/data
+        networks:
+        - arrnet
+        ports:
+        - "127.0.0.1:9696:9696"
+        restart: unless-stopped
+
+    bazarr:
+        image: lscr.io/linuxserver/bazarr:latest
+        environment:
+        - PUID=1000
+        - PGID=1000
+        - TZ=America/Mexico_City
+        volumes:
+        - ./automation/bazarr/config:/config
+        - /mnt/external/data:/data
+        networks:
+        - arrnet
+        ports:
+        - "127.0.0.1:6767:6767"
+        restart: unless-stopped
+
+    shoko_server:
+        shm_size: 256m
+        image: ghcr.io/shokoanime/server:latest
+        restart: always
+        environment:
+        - "PUID=1000"
+        - "PGID=100"
+        - "TZ=America/Mexico_City"
+        networks:
+        - arrnet
+        ports:
+        - "127.0.0.1:8111:8111"
+        volumes:
+        - ./automation/shoko-config:/home/shoko/.shoko
+        - /mnt/external/data:/data
+
+    heimdall:
+        image: lscr.io/linuxserver/heimdall:latest
+        environment:
+        - PUID=1000
+        - PGID=1000
+        - TZ=America/Mexico_City
+        volumes:
+        - ./automation/heimdall:/config
+        networks:
+        - tools
+        ports:
+        - "127.0.0.1:8442:80"
+        - "127.0.0.1:8443:443"
+        extra_hosts:
+        - "host.docker.internal:host-gateway"
+        restart: unless-stopped
+
+    gitea:
+        image: docker.gitea.com/gitea:latest
+        container_name: gitea
+        environment:
+        - USER_UID=1000
+        - USER_GID=1000
+        restart: always
+        volumes:
+        - ./gitea:/data
+        - /etc/timezone:/etc/timezone:ro
+        - /etc/localtime:/etc/localtime:ro
+        networks:
+        - gitea
+        ports:
+        - "127.0.0.1:3000:3000"
+        - "127.0.0.1:3222:22"
+
+    runner:
+        image: docker.io/gitea/act_runner:nightly
+        container_name: gitea-runner-jekyll
+        environment:
+        GITEA_INSTANCE_URL: http://gitea:3000
+        GITEA_RUNNER_REGISTRATION_TOKEN: <token>
+        GITEA_RUNNER_NAME: "gitea-runner-jekyll"
+        networks:
+        - gitea
+        volumes:
+        - ./gitea_runners/runner/data:/data
+        - /var/run/docker.sock:/var/run/docker.sock
+
+    navidrome:
+        image: deluan/navidrome:latest
+        container_name: navidrome
+        #user: 1000:1000 # should be owner of volumes
+        networks:
+        - arrnet
+        ports:
+        - "127.0.0.1:4533:4533"
+        restart: unless-stopped
+        environment:
+        - TZ=America/Mexico_City
+        - ND_SCANNER_GROUPALBUMRELEASES=true #Prevent albums from being splitted by year of release
+        - ND_PID_ALBUM=albumartistid,album,albumversion
+        # Optional: put your config options customization here. Examples:
+        # ND_LOGLEVEL: debug
+        volumes:
+        - ./navidrome/data:/data
+        - /mnt/storage/onedrive/Música/Music:/music:ro
+
+
+networks:
+    gitea:
+        external: true
+
+    arrnet:
+        external: true
+
+    tools:
+        external: true
+
+    productivity:
+        external: true
+
+    adguard:
+        external: true
+
