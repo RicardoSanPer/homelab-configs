@@ -1,0 +1,9 @@
+[Unit]
+Description=Daily 2-Way sync with OneDrive
+After=Network-online.target
+
+[Service]
+User=ricardo
+Group=ricardo
+Type=oneshot
+ExecStart=/usr/local/bin/onedrive-sync.sh
