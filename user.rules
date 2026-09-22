@@ -65,6 +65,14 @@
 -A ufw-user-input -p tcp --dport 139 -j DROP
 -A ufw-user-input -p udp --dport 139 -j DROP
 
+### tuple ### allow any 1515 0.0.0.0/0 any 0.0.0.0/0 in
+-A ufw-user-input -p tcp --dport 1515 -j ACCEPT
+-A ufw-user-input -p udp --dport 1515 -j ACCEPT
+
+### tuple ### allow any 1514 0.0.0.0/0 any 0.0.0.0/0 in
+-A ufw-user-input -p tcp --dport 1514 -j ACCEPT
+-A ufw-user-input -p udp --dport 1514 -j ACCEPT
+
 ### END RULES ###
 
 ### LOGGING ###
