@@ -1,0 +1,33 @@
+# Notes on Wazuh configurations
+At the moment I haven't set up SSL for HTTPS connections to my server, and setting up Nginx to use a mix of HTTP and HTTPS for Wazuh was being somewhat problematic, so I instead decided to reconfigure it to not use SSL. With the following changes I managed to get it working with the reverse proxy:
+
+## Dashboard Configuration
+File: `/etc/wazuh-dashboard/opensearch_dashboards.yml`
+
+Commented out:
+~~~
+#server.ssl.enabled: true
+#server.ssl.key: "/usr/share/wazuh-dashboard/certs/wazuh-dashboard-key.pem"
+#server.ssl.certificate: "/usr/share/wazuh-dashboard/certs/wazuh-dashboard.pem"
+# opensearch_security.cookie.secure: true
+~~~
+Changes server.host to 127.0.0.1 and server.port to 5601
+
+## API Configuration
+File: `/var/ossec/api/configuration/api.yaml`
+
+Uncommented and changed the following lines:
+~~~
+host: ['127.0.0.1', '::1']
+port: 55000
+https:
+  enabled: false
+~~~
+
+## Wazuh General Config
+File: `/usr/share/wazuh-dashboard/data/wazuh/config/wazuh.yml`
+
+Changed the URL of the host at the bottom of the file to http (from https).
+
+## Future
+When I implement SSL in my server I will revert some configurations to use HTTPS again
